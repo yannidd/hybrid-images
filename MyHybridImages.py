@@ -62,29 +62,3 @@ def makeGaussianKernel(sigma: float) -> np.ndarray:
   kernel = kernel / np.sum(kernel)
 
   return kernel
-
-
-# function
-# template = gaussian_template(winsize, sigma)
-#
-# centre = floor(winsize / 2) + 1;
-# % we
-# 'll normalise by the total sum
-# sum = 0;
-# *(i - centre))) / (2 * sigma * sigma))
-# % so
-# work
-# out
-# the
-# coefficients and the
-# running
-# total
-# for i=1:winsize
-# for j=1:winsize
-# template(j, i) = exp(-(((j - centre) * (j - centre)) + ((i - centre)
-# sum = sum + template(j, i);
-# end
-# end
-# % and then
-# normalise
-# template = template / sum;

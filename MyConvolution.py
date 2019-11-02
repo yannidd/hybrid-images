@@ -20,10 +20,16 @@ def convolve(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
   is_colour = True if len(image.shape) == 3 else False
   padding_size = np.array(kernel.shape) // 2
 
+  kernel = np.flip(kernel)
+
   if is_colour:
     # Add padding
     kernel_colour = kernel[:, :, None]
-    padded_image = np.pad(image, ((0, 2 * kernel.shape[0]), (0, 2 * kernel.shape[1]), (0, 0)), mode='constant')
+    padded_image = np.pad(image,
+                          ((kernel.shape[0] // 2, kernel.shape[0] // 2),
+                           (kernel.shape[1] // 2, kernel.shape[1] // 2),
+                           (0, 0)),
+                          mode='constant')
 
     # Convolve
     for i in range(image.shape[0]):
@@ -33,7 +39,10 @@ def convolve(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
         new_image[i, j] = summation
   else:
     # Add padding
-    padded_image = np.pad(image, ((0, 2 * kernel.shape[0]), (0, 2 * kernel.shape[1])), mode='constant')
+    padded_image = np.pad(image,
+                          ((kernel.shape[0] // 2, kernel.shape[0] // 2),
+                           (kernel.shape[1] // 2, kernel.shape[1] // 2)),
+                          mode='constant')
 
     # Convolve
     for i in range(image.shape[0]):

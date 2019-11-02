@@ -4,8 +4,8 @@ import unittest
 import numpy as np
 from scipy import ndimage
 
-# from MyConvolutionFFT import convolve as convolve_fft
-from MyConvolution import convolve as convolve_fft
+from MyConvolutionFFT import convolve as convolve_fft
+from MyConvolution import convolve as convolve
 from MyHybridImages import makeGaussianKernel
 
 """
@@ -24,6 +24,10 @@ Note that colour convolution is achieved by applying the convolution operator to
 
 class TestGaussianKernel(unittest.TestCase):
   def test_shape(self):
+    """
+    Tests if the produced kernel has the expected shape.
+    :return:
+    """
     sigmas = range(1, 10)
     for sigma in sigmas:
       gaussian_kernel = makeGaussianKernel(sigma)
@@ -35,12 +39,20 @@ class TestGaussianKernel(unittest.TestCase):
       self.assertEqual(gaussian_kernel.shape[1], size)
 
   def test_sum(self):
+    """
+    Tests if the produced kernel is normalised (sums to 1).
+    :return:
+    """
     self.assertTrue(np.allclose(1, np.sum(makeGaussianKernel(0.1))))
     self.assertTrue(np.allclose(1, np.sum(makeGaussianKernel(0.5))))
     self.assertTrue(np.allclose(1, np.sum(makeGaussianKernel(0.9))))
     self.assertTrue(np.allclose(1, np.sum(makeGaussianKernel(1.5))))
 
   def test_kernel(self):
+    """
+    Tests if the produced kernel matches one from https://en.wikipedia.org/wiki/Gaussian_blur.
+    :return:
+    """
     sigma = 0.84089642
 
     template = np.array(
@@ -58,6 +70,10 @@ class TestGaussianKernel(unittest.TestCase):
     self.assertTrue(np.allclose(template, generated))
 
   def test_max_location(self):
+    """
+    Tests if the maximum value is in the middle of the kernel.
+    :return:
+    """
     for sigma in np.arange(0.1, 2, 0.25):
       kernel = makeGaussianKernel(sigma)
       centre = kernel.shape[0] // 2
@@ -67,26 +83,36 @@ class TestGaussianKernel(unittest.TestCase):
 
 class TestConvolution(unittest.TestCase):
   def test_scipy_similarity_bw(self):
+    """
+    Tests if the MyConvolution and MyConvolutionFFT outputs are the same as scipy.ndimage.convolve for B&W.
+    :return:
+    """
     images = [
       np.random.rand(10, 10),
       np.random.rand(1, 1),
       np.random.rand(15, 100),
     ]
     kernels = [
-      # np.random.rand(5, 7),
-      # np.random.rand(3, 3),
-      # np.random.rand(10, 10),
-      # np.random.rand(1, 1),
+      np.random.rand(5, 7),
+      np.random.rand(3, 3),
+      np.random.rand(9, 9),
+      np.random.rand(1, 1),
       makeGaussianKernel(1)
     ]
 
     for image in images:
       for kernel in kernels:
         convolved_sp = ndimage.convolve(image, kernel, mode='constant', cval=0)
-        convolved_my = convolve_fft(image, kernel)
-        self.assertTrue(np.allclose(convolved_my, convolved_sp) and np.allclose(convolved_my, convolved_sp))
+        convolved_my_fft = convolve_fft(image, kernel)
+        convolved_my = convolve(image, kernel)
+        self.assertTrue(np.allclose(convolved_my, convolved_sp)
+                        and np.allclose(convolved_my_fft, convolved_sp))
 
   def test_scipy_similarity_colour(self):
+    """
+    Tests if the MyConvolution and MyConvolutionFFT outputs are the same as scipy.ndimage.convolve for colour.
+    :return:
+    """
     images = [
       np.random.rand(10, 10, 3),
       np.random.rand(1, 1, 3),
@@ -95,8 +121,9 @@ class TestConvolution(unittest.TestCase):
     kernels = [
       np.random.rand(5, 7),
       np.random.rand(3, 3),
-      np.random.rand(10, 10),
+      np.random.rand(9, 9),
       np.random.rand(1, 1),
+      makeGaussianKernel(1)
     ]
 
     for image in images:
@@ -105,8 +132,10 @@ class TestConvolution(unittest.TestCase):
                                  ndimage.convolve(image[:, :, 1], kernel, mode='constant', cval=0),
                                  ndimage.convolve(image[:, :, 2], kernel, mode='constant', cval=0),),
                                 axis=-1)
+        convolved_my_fft = convolve_fft(image, kernel)
         convolved_my = convolve_fft(image, kernel)
-        self.assertTrue(np.allclose(convolved_my, convolved_sp) and np.allclose(convolved_my, convolved_sp))
+        self.assertTrue(np.allclose(convolved_my, convolved_sp)
+                        and np.allclose(convolved_my_fft, convolved_sp))
 
 
 if __name__ == '__main__':
